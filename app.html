@@ -9,9 +9,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{margin:0;padding:0;}
 body{font-family:'Calibri',Calibri,'Segoe UI',Arial,sans-serif;background:#f4f5f7;color:#1a1a2e;font-size:14px}
+
 :root{--mbl:#1a3a6b;--mbl2:#2d5aa0;--bg:#f4f5f7;--surface:#fff;--surface2:#f8f9fa;--border:#d0d5dd;--border2:#b0b8c8;--txt:#1a1a2e;--txt2:#5a6478;--txt3:#8a94a6;--blue:#185fa5;--blue-bg:#e6f1fb;--blue-txt:#0c447c;--green-bg:#eaf3de;--green-txt:#27500a;--amber-bg:#faeeda;--amber-txt:#633806;--red:#a32d2d;--red-bg:#fcebeb;--red-border:#f7c1c1;--warn:#854f0b;--radius:8px;--radius-lg:12px}
-.app{display:flex;width:100vw;height:100vh;overflow:hidden;}
-.sidebar{width:220px;min-width:220px;background:var(--mbl);display:flex;flex-direction:column}
+.app{display:flex!important;flex-direction:row!important;width:100vw!important;height:100vh!important;overflow:hidden!important;}
+.sidebar{width:220px!important;min-width:220px!important;max-width:220px!important;flex-shrink:0!important;background:var(--mbl);display:flex;flex-direction:column}
 .logo-area{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,0.12)}
 .logo-title{color:#fff;font-size:22px;font-weight:700}
 .logo-sub{color:rgba(255,255,255,0.45);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
@@ -21,7 +22,7 @@ body{font-family:'Calibri',Calibri,'Segoe UI',Arial,sans-serif;background:#f4f5f
 .nav-item:hover{background:rgba(255,255,255,0.08);color:#fff}
 .nav-item.active{background:rgba(255,255,255,0.13);color:#fff;border-left-color:#5b9bd5}
 .nav-icon{width:18px;height:18px;flex-shrink:0;opacity:.85}
-.main{flex:1;min-width:0;overflow-y:auto;background:var(--bg)}
+.main{flex:1!important;width:calc(100vw - 220px)!important;min-width:0!important;overflow-y:auto;background:var(--bg)}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
 .topbar-title{font-size:16px;font-weight:600}
 .content{padding:20px 24px}
