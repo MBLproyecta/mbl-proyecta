@@ -128,6 +128,7 @@ tbody tr:hover td{background:#f0f4f8}
 .bulk-bar .btn-danger{background:#a32d2d;color:#fff}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <button class="sidebar-toggle" onclick="toggleSidebar()" id="sidebar-toggle-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div><div class="app">
@@ -319,11 +320,11 @@ function pasaFiltroFecha(tipo,fecha){const f=uiState[tipo].filtros;if(f.dia)retu
 function ordenarPorFecha(tipo,rows){const orden=uiState[tipo].orden||'desc';return rows.sort((a,b)=>{if(a.fecha!==b.fecha)return orden==='asc'?a.fecha.localeCompare(b.fecha):b.fecha.localeCompare(a.fecha);return orden==='asc'?a.id-b.id:b.id-a.id;});}
 function fechaOrdenDiaMesHTML(tipo){return `<input type="date" id="filtro-dia-${tipo}" title="Filtrar por día" onchange="onFiltroDia('${tipo}',this.value)"><input type="month" id="filtro-mes-${tipo}" title="Filtrar por mes" onchange="onFiltroMes('${tipo}',this.value)"><button class="btn" onclick="limpiarFiltrosFecha('${tipo}')" title="Limpiar filtro de fecha" style="padding:8px 10px">✕</button><select onchange="onOrden('${tipo}',this.value)"><option value="desc" ${uiState[tipo].orden!=='asc'?'selected':''}>Más reciente primero</option><option value="asc" ${uiState[tipo].orden==='asc'?'selected':''}>Más antigua primero</option></select>`;}
 function ccFilterOptions(){return contratosOpts(0);}
-function renderToolbarOC(){g('toolbar-oc').innerHTML=`<div class="toolbar">${searchInputHTML('oc','Buscar N° OC, obra, contrato...')}<select onchange="onFilter('oc','estado',this.value)"><option value="">Todos los estados</option><option value="status-pend">Pendiente</option><option value="status-parc">Parcial</option><option value="status-comp">Completada</option></select><select onchange="onFilter('oc','cc',this.value)"><option value="">Todas las obras/contratos</option>${ccFilterOptions()}</select>${fechaOrdenDiaMesHTML('oc')}</div><div class="bulk-bar" id="bulkbar-oc"></div>`;renderBulkBar('oc');}
-function renderToolbarVentas(){g('toolbar-ventas').innerHTML=`<div class="toolbar">${searchInputHTML('ventas','Buscar folio, cliente, obra...')}<select onchange="onFilter('ventas','estado',this.value)"><option value="">Todos los estados</option><option value="pp">Pendiente de pago</option><option value="pc">Pagado por cliente</option><option value="pf">Pagado por factoring</option></select><select onchange="onFilter('ventas','cc',this.value)"><option value="">Todas las obras/contratos</option>${ccFilterOptions()}</select>${fechaOrdenDiaMesHTML('ventas')}</div><div class="bulk-bar" id="bulkbar-ventas"></div>`;renderBulkBar('ventas');}
-function renderToolbarCompras(){g('toolbar-compras').innerHTML=`<div class="toolbar">${searchInputHTML('compras','Buscar N° factura, proveedor, obra...')}<select onchange="onFilter('compras','estado',this.value)"><option value="">Todos los estados</option><option value="recibida">Recibida</option><option value="parcial">Pagada parcialmente</option><option value="completa">Pagada completa</option></select><select onchange="onFilter('compras','cc',this.value)"><option value="">Todas las obras/contratos</option><option value="OC">🏢 Oficina Central</option>${ccFilterOptions()}</select><select onchange="onFilter('compras','proveedor',this.value)"><option value="">Todos los proveedores</option>${db.proveedores.map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('')}</select>${fechaOrdenDiaMesHTML('compras')}</div><div class="bulk-bar" id="bulkbar-compras"></div>`;renderBulkBar('compras');}
-function renderToolbarObras(){g('toolbar-obras').innerHTML=`<div class="toolbar">${searchInputHTML('obras','Buscar obra, contrato, especialidad...')}</div><div class="bulk-bar" id="bulkbar-obras"></div>`;renderBulkBar('obras');}
-function renderToolbarProveedores(){g('toolbar-proveedores').innerHTML=`<div class="toolbar">${searchInputHTML('proveedores','Buscar razón social o RUT...')}</div><div class="bulk-bar" id="bulkbar-proveedores"></div>`;renderBulkBar('proveedores');}
+function renderToolbarOC(){g('toolbar-oc').innerHTML=`<div class="toolbar">${importBtnHTML('oc')}${searchInputHTML('oc','Buscar N° OC, obra, contrato...')}<select onchange="onFilter('oc','estado',this.value)"><option value="">Todos los estados</option><option value="status-pend">Pendiente</option><option value="status-parc">Parcial</option><option value="status-comp">Completada</option></select><select onchange="onFilter('oc','cc',this.value)"><option value="">Todas las obras/contratos</option>${ccFilterOptions()}</select>${fechaOrdenDiaMesHTML('oc')}</div><div class="bulk-bar" id="bulkbar-oc"></div>`;renderBulkBar('oc');}
+function renderToolbarVentas(){g('toolbar-ventas').innerHTML=`<div class="toolbar">${importBtnHTML('ventas')}${searchInputHTML('ventas','Buscar folio, cliente, obra...')}<select onchange="onFilter('ventas','estado',this.value)"><option value="">Todos los estados</option><option value="pp">Pendiente de pago</option><option value="pc">Pagado por cliente</option><option value="pf">Pagado por factoring</option></select><select onchange="onFilter('ventas','cc',this.value)"><option value="">Todas las obras/contratos</option>${ccFilterOptions()}</select>${fechaOrdenDiaMesHTML('ventas')}</div><div class="bulk-bar" id="bulkbar-ventas"></div>`;renderBulkBar('ventas');}
+function renderToolbarCompras(){g('toolbar-compras').innerHTML=`<div class="toolbar">${importBtnHTML('compras')}${searchInputHTML('compras','Buscar N° factura, proveedor, obra...')}<select onchange="onFilter('compras','estado',this.value)"><option value="">Todos los estados</option><option value="recibida">Recibida</option><option value="parcial">Pagada parcialmente</option><option value="completa">Pagada completa</option></select><select onchange="onFilter('compras','cc',this.value)"><option value="">Todas las obras/contratos</option><option value="OC">🏢 Oficina Central</option>${ccFilterOptions()}</select><select onchange="onFilter('compras','proveedor',this.value)"><option value="">Todos los proveedores</option>${db.proveedores.map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('')}</select>${fechaOrdenDiaMesHTML('compras')}</div><div class="bulk-bar" id="bulkbar-compras"></div>`;renderBulkBar('compras');}
+function renderToolbarObras(){g('toolbar-obras').innerHTML=`<div class="toolbar">${importBtnHTML('obras')}${searchInputHTML('obras','Buscar obra, contrato, especialidad...')}</div><div class="bulk-bar" id="bulkbar-obras"></div>`;renderBulkBar('obras');}
+function renderToolbarProveedores(){g('toolbar-proveedores').innerHTML=`<div class="toolbar">${importBtnHTML('proveedores')}${searchInputHTML('proveedores','Buscar razón social o RUT...')}</div><div class="bulk-bar" id="bulkbar-proveedores"></div>`;renderBulkBar('proveedores');}
 function toDisplay(iso){if(!iso)return'';const p=iso.split('-');if(p.length===3)return`${p[2].slice(-2)}-${p[1]}-${p[0].slice(-2)}`;return iso;}
 function toISO(d){if(!d)return'';const p=d.split('-');if(p.length===3){const y=p[2].length===2?'20'+p[2]:p[2];return`${y}-${p[1]}-${p[0]}`;}return d;}
 function formatRut(id){let v=g(id).value.replace(/[^0-9kK\-]/g,'');if(v.includes('-')){let[n,dv]=v.split('-');n=n.replace(/\B(?=(\d{3})+(?!\d))/g,'.');g(id).value=n+'-'+(dv||'');}else g(id).value=v;}
@@ -590,6 +591,137 @@ function importarVentasIniciales(){
   renderDashboard();
   renderImportVentasBanner();
   alert('Importación completa. Ahora edita cada factura para asignarle su Obra/Contrato.');
+}
+
+// ===== INGRESO MASIVO POR EXCEL =====
+
+function importBtnHTML(tipo){
+  return `<label class="btn" style="cursor:pointer;padding:8px 14px;font-size:13px" title="Importar desde Excel">
+    📥 Importar Excel
+    <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importarExcel('${tipo}',this)">
+  </label>
+  <button class="btn" onclick="descargarPlantilla('${tipo}')" style="padding:8px 14px;font-size:13px" title="Descargar plantilla Excel">📤 Plantilla</button>`;
+}
+
+function descargarPlantilla(tipo){
+  const templates={
+    ventas:{name:'Facturas_Venta',headers:['Folio','Obra / Contrato','N° OC vinculada','Fecha (DD-MM-AAAA)','Neto ($)','Retención ($)','Plazo de pago (días)','Estado (pp/pc/pf)'],ejemplo:['75','Nombre Obra / Especialidad','OC-001','15-06-2026','1000000','50000','30','pc']},
+    compras:{name:'Facturas_Compra',headers:['N° Factura','Proveedor','Obra / Contrato','Fecha (DD-MM-AAAA)','Neto ($)','Monto pagado ($)','Estado (recibida/parcial/completa)','Método prorrateo OC (igual/proporcional)'],ejemplo:['F-001','Proveedor SPA','Nombre Obra / Especialidad','15-06-2026','500000','500000','completa','']},
+    oc:{name:'Ordenes_Compra',headers:['N° OC','Obra / Contrato','Fecha (DD-MM-AAAA)','Neto ($)','Exenta IVA (si/no)','Notas'],ejemplo:['OC-001','Nombre Obra / Especialidad','01-06-2026','5000000','no','Notas opcionales']},
+    obras:{name:'Obras_Contratos',headers:['Tipo (obra/contrato/adicional)','Nombre obra','Cliente','RUT cliente','Contacto','Especialidad contrato','Nombre contrato','Monto neto ($)','Exento IVA (si/no)','Notas','Contrato padre (si es adicional)'],ejemplo:['obra','Mi Obra SA','Cliente SPA','76.123.456-7','Juan Pérez','','','','','','']},
+    proveedores:{name:'Proveedores',headers:['Razón social','RUT','Contacto'],ejemplo:['Proveedor SPA','76.123.456-7','Juan Pérez']},
+    trabajadores:{name:'Trabajadores',headers:['Nombre completo','RUT','Sueldo líquido base ($)'],ejemplo:['Juan Pérez','12.345.678-9','800000']},
+    manoobra:{name:'Mano_Obra',headers:['Trabajador (nombre exacto)','Obra / Contrato','Fecha desde (DD-MM-AAAA)','Fecha hasta (DD-MM-AAAA)','Sueldo líquido ($)','% Imposiciones','Desglose (si/no)','% AFP','% Salud','% Cesantía','% Otros'],ejemplo:['Juan Pérez','Nombre Obra / Especialidad','01-06-2026','30-06-2026','800000','30','no','','','','']}
+  };
+  const t=templates[tipo];if(!t)return;
+  const wb=XLSX.utils.book_new();
+  const instrucciones=[
+    ['INSTRUCCIONES DE USO'],
+    [''],
+    ['1. No modifiques los nombres de las columnas (primera fila)'],
+    ['2. La primera fila de datos de ejemplo puedes borrarla'],
+    ['3. Para Obra / Contrato: escribe exactamente "Nombre obra / Especialidad" como aparece en la app'],
+    ['4. Celdas vacías quedarán en blanco en la app — se pueden editar después'],
+    ['5. Para Estado: pp=Pendiente pago, pc=Pagado cliente, pf=Pagado factoring'],
+    ['6. Para Oficina Central en facturas de compra: escribe "Oficina Central" en la columna Obra / Contrato'],
+  ];
+  const wsInst=XLSX.utils.aoa_to_sheet(instrucciones);
+  XLSX.utils.book_append_sheet(wb,wsInst,'Instrucciones');
+  const data=[t.headers,t.ejemplo];
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=t.headers.map(()=>({wch:28}));
+  XLSX.utils.book_append_sheet(wb,ws,t.name);
+  XLSX.writeFile(wb,`Plantilla_${t.name}.xlsx`);
+}
+
+function buscarContrato(label){
+  if(!label||!label.trim())return null;
+  const parts=label.split('/').map(s=>s.trim());
+  if(parts.length>=2){
+    const obraNombre=parts[0],esp=parts[1];
+    const obra=db.obras.find(o=>normTxt(o.nombre)===normTxt(obraNombre));
+    if(obra){const ct=db.contratos.find(c=>c.obraId===obra.id&&normTxt(c.especialidad)===normTxt(esp));if(ct)return ct.id;}
+  }
+  const ct=db.contratos.find(c=>normTxt(c.especialidad)===normTxt(label)||normTxt(c.nombre)===normTxt(label));
+  return ct?ct.id:null;
+}
+
+function parseFecha(v){
+  if(!v)return'';
+  const s=String(v).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  const m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{2,4})$/);
+  if(m){const y=m[3].length===2?'20'+m[3]:m[3];return`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;}
+  if(typeof v==='number'){const d=new Date(Math.round((v-25569)*86400*1000));return d.toISOString().slice(0,10);}
+  return'';
+}
+
+function importarExcel(tipo,input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const sheetName=wb.SheetNames.find(n=>n!=='Instrucciones')||wb.SheetNames[0];
+      const ws=wb.Sheets[sheetName];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){alert('El archivo está vacío o no tiene datos.');return;}
+      let importados=0,errores=0,msgs=[];
+      rows.forEach((row,i)=>{
+        try{
+          const now=new Date().toISOString();
+          if(tipo==='ventas'){
+            const ccId=buscarContrato(row['Obra / Contrato']||'');
+            const ocNum=String(row['N° OC vinculada']||'').trim();
+            const oc=ocNum?db.oc.find(o=>normTxt(o.num)===normTxt(ocNum)):null;
+            db.ventas.push({id:Date.now()+i,ingresadoEn:now,folio:parseInt(row['Folio'])||0,cc:ccId||null,ocId:oc?oc.id:null,fecha:parseFecha(row['Fecha (DD-MM-AAAA)']),neto:parseFloat(String(row['Neto ($)']).replace(/[^0-9.-]/g,''))||0,retencion:parseFloat(String(row['Retención ($)']).replace(/[^0-9.-]/g,''))||0,plazoPago:parseInt(row['Plazo de pago (días)'])||30,estado:row['Estado (pp/pc/pf)']||'pc',factoring:0});importados++;
+          }else if(tipo==='compras'){
+            const ccLabel=String(row['Obra / Contrato']||'').trim();
+            const esOC=normTxt(ccLabel)==='oficina central';
+            const ccId=esOC?'OC':buscarContrato(ccLabel);
+            const prov=db.proveedores.find(p=>normTxt(p.nombre)===normTxt(row['Proveedor']||''));
+            const neto=parseFloat(String(row['Neto ($)']).replace(/[^0-9.-]/g,''))||0;
+            const pagado=parseFloat(String(row['Monto pagado ($)']).replace(/[^0-9.-]/g,''))||0;
+            const ex=isExentaCC(ccId);const total=neto+(ex?0:Math.round(neto*0.19));
+            const estadoRaw=String(row['Estado (recibida/parcial/completa)']||'').trim()||estadoCompra(pagado,total);
+            db.compras.push({id:Date.now()+i,ingresadoEn:now,num:String(row['N° Factura']||''),proveedor:prov?prov.nombre:String(row['Proveedor']||''),cc:ccId||null,fecha:parseFecha(row['Fecha (DD-MM-AAAA)']),neto,pagado,estado:estadoRaw,prorrateo:row['Método prorrateo OC (igual/proporcional)']||'igual'});importados++;
+          }else if(tipo==='oc'){
+            const ccId=buscarContrato(row['Obra / Contrato']||'');
+            db.oc.push({id:Date.now()+i,ingresadoEn:now,num:String(row['N° OC']||''),cc:ccId||null,fecha:parseFecha(row['Fecha (DD-MM-AAAA)']),neto:parseFloat(String(row['Neto ($)']).replace(/[^0-9.-]/g,''))||0,exenta:normTxt(row['Exenta IVA (si/no)'])==='si',notas:String(row['Notas']||'')});importados++;
+          }else if(tipo==='obras'){
+            const tipo2=normTxt(row['Tipo (obra/contrato/adicional)']||'');
+            if(tipo2==='obra'||!tipo2){
+              db.obras.push({id:Date.now()+i,ingresadoEn:now,nombre:String(row['Nombre obra']||''),cliente:String(row['Cliente']||''),rut:String(row['RUT cliente']||''),contacto:String(row['Contacto']||''),fechaCierre:''});importados++;
+            }else if(tipo2==='contrato'||tipo2==='adicional'){
+              const obra=db.obras.find(o=>normTxt(o.nombre)===normTxt(row['Nombre obra']||''));
+              const padre=tipo2==='adicional'?db.contratos.find(c=>normTxt(c.nombre)===normTxt(row['Contrato padre (si es adicional)']||'')||normTxt(c.especialidad)===normTxt(row['Contrato padre (si es adicional)']||'')):null;
+              db.contratos.push({id:Date.now()+i,ingresadoEn:now,obraId:obra?obra.id:null,parentId:padre?padre.id:null,especialidad:String(row['Especialidad contrato']||''),nombre:String(row['Nombre contrato']||''),monto:parseFloat(String(row['Monto neto ($)']).replace(/[^0-9.-]/g,''))||0,exenta:normTxt(row['Exento IVA (si/no)'])==='si',notas:String(row['Notas']||''),fechaCierre:''});importados++;
+            }
+          }else if(tipo==='proveedores'){
+            db.proveedores.push({id:Date.now()+i,ingresadoEn:now,nombre:String(row['Razón social']||''),rut:String(row['RUT']||''),contacto:String(row['Contacto']||'')});importados++;
+          }else if(tipo==='trabajadores'){
+            db.trabajadores.push({id:Date.now()+i,ingresadoEn:now,nombre:String(row['Nombre completo']||''),rut:String(row['RUT']||''),sueldo:parseFloat(String(row['Sueldo líquido base ($)']).replace(/[^0-9.-]/g,''))||0});importados++;
+          }else if(tipo==='manoobra'){
+            const trab=db.trabajadores.find(t=>normTxt(t.nombre)===normTxt(row['Trabajador (nombre exacto)']||''));
+            const ccId=buscarContrato(row['Obra / Contrato']||'');
+            const liq=parseFloat(String(row['Sueldo líquido ($)']).replace(/[^0-9.-]/g,''))||0;
+            const pct=parseFloat(row['% Imposiciones'])||30;
+            const imp=Math.round(liq*pct/100);
+            const desde=parseFecha(row['Fecha desde (DD-MM-AAAA)']);
+            const hasta=parseFecha(row['Fecha hasta (DD-MM-AAAA)']);
+            db.manoObra.push({id:Date.now()+i,ingresadoEn:now,trabajadorId:trab?trab.id:null,nombre:trab?trab.nombre:String(row['Trabajador (nombre exacto)']||''),rut:trab?trab.rut:'',cc:ccId||null,desde,hasta,fecha:desde,liquido:liq,pctImposiciones:pct,imposiciones:imp,totalEmpresa:liq+imp,desglose:normTxt(row['Desglose (si/no)'])==='si',afp:parseFloat(row['% AFP'])||10,salud:parseFloat(row['% Salud'])||7,seguro:parseFloat(row['% Cesantía'])||3,otros:parseFloat(row['% Otros'])||10});importados++;
+          }
+        }catch(err){errores++;msgs.push(`Fila ${i+2}: ${err.message}`);}
+      });
+      save();renderTabla(tipo);renderDashboard();
+      input.value='';
+      let msg=`✅ Importación completada:\n• ${importados} registro(s) importado(s)`;
+      if(errores)msg+=`\n• ${errores} fila(s) con error`;
+      if(msgs.length)msg+='\n\nDetalles:\n'+msgs.slice(0,5).join('\n');
+      alert(msg);
+    }catch(err){alert('Error leyendo el archivo: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 initApp();
