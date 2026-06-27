@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBL Proyecta — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f4f5f7;color:#1a2332;font-size:14px;}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,0.1);}
+.card h2{font-size:22px;font-weight:800;color:#1a3a6b;margin-bottom:6px;}
+.card p{font-size:13px;color:#5a6478;margin-bottom:24px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:600;color:#1a2332;margin-bottom:6px;}
+.field input{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:14px;font-family:inherit;outline:none;}
+.field input:focus{border-color:#1a3a6b;}
+.btn{padding:11px 20px;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;}
+.btn-primary{background:#1a3a6b;color:#fff;width:100%;}
+.btn-primary:hover{background:#2a5298;}
+.btn-sm{padding:6px 14px;font-size:12px;}
+.btn-success{background:#166534;color:#fff;}
+.btn-danger{background:#a32d2d;color:#fff;}
+.btn-warning{background:#854f0b;color:#fff;}
+.btn-gray{background:#e2e8f0;color:#1a2332;}
+.error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;}
+.error.show{display:block;}
+
+/* PANEL */
+.panel{min-height:100vh;display:flex;flex-direction:column;}
+.panel-header{background:#1a3a6b;color:#fff;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;}
+.panel-header h1{font-size:18px;font-weight:700;}
+.panel-body{padding:32px;flex:1;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
+.stat{background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;text-align:center;}
+.stat-num{font-size:28px;font-weight:800;color:#1a3a6b;}
+.stat-label{font-size:12px;color:#5a6478;margin-top:4px;text-transform:uppercase;letter-spacing:.5px;}
+.section-title{font-size:16px;font-weight:700;color:#1a3a6b;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #e2e8f0;}
+.table-wrap{background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:32px;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f7f9fc;padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#5a6478;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #e2e8f0;}
+td{padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;}
+tr:last-child td{border-bottom:none;}
+.badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;}
+.badge-pendiente{background:#fef3c7;color:#92400e;}
+.badge-activo{background:#dcfce7;color:#166534;}
+.badge-suspendido{background:#fee2e2;color:#b91c1c;}
+.actions-cell{display:flex;gap:6px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.create-form{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:24px;margin-bottom:32px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN ADMIN -->
+<div class="login-wrap" id="login-section">
+  <div class="card">
+    <h2>Panel Administrador</h2>
+    <p>Acceso exclusivo para administradores de MBL Proyecta.</p>
+    <div class="error" id="admin-error">Contraseña incorrecta.</div>
+    <div class="field"><label>Contraseña de administrador</label><input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+    <button class="btn btn-primary" onclick="doAdminLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- PANEL ADMIN -->
+<div class="panel" id="panel-section" style="display:none">
+  <div class="panel-header">
+    <h1>🔧 MBL Proyecta — Panel Administrador</h1>
+    <button class="btn btn-gray btn-sm" onclick="salirAdmin()">Cerrar sesión</button>
+  </div>
+  <div class="panel-body">
+
+    <!-- ESTADÍSTICAS -->
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Total cuentas</div></div>
+      <div class="stat"><div class="stat-num" id="stat-activas" style="color:#166534">0</div><div class="stat-label">Activas</div></div>
+      <div class="stat"><div class="stat-num" id="stat-pendientes" style="color:#92400e">0</div><div class="stat-label">Pendientes</div></div>
+      <div class="stat"><div class="stat-num" id="stat-suspendidas" style="color:#b91c1c">0</div><div class="stat-label">Suspendidas</div></div>
+    </div>
+
+    <!-- CREAR CUENTA -->
+    <p class="section-title">Crear nueva cuenta</p>
+    <div class="create-form">
+      <div class="form-row">
+        <div class="field"><label>Nombre completo</label><input type="text" id="new-nombre" placeholder="Juan Pérez"></div>
+        <div class="field"><label>Empresa</label><input type="text" id="new-empresa" placeholder="Empresa SPA"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Correo electrónico</label><input type="email" id="new-email" placeholder="juan@empresa.cl"></div>
+        <div class="field"><label>Contraseña temporal</label><input type="text" id="new-pass" placeholder="Mínimo 6 caracteres"></div>
+      </div>
+      <div class="field">
+        <label>Plan</label>
+        <select id="new-plan" style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:14px;font-family:inherit">
+          <option value="mensual">Mensual — $35.000/mes</option>
+          <option value="semestral">Semestral — $180.000/6 meses</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:auto;padding:10px 28px" onclick="crearCuenta()">+ Crear cuenta</button>
+      <span id="create-msg" style="margin-left:12px;font-size:13px;color:#166534"></span>
+    </div>
+
+    <!-- CUENTAS PENDIENTES -->
+    <p class="section-title">Solicitudes pendientes</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Nombre</th><th>Empresa</th><th>Correo</th><th>Plan</th><th>Fecha solicitud</th><th>Acciones</th></tr></thead>
+        <tbody id="tabla-pendientes"><tr><td colspan="6" style="text-align:center;padding:20px;color:#8a94a6">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- TODAS LAS CUENTAS -->
+    <p class="section-title">Todas las cuentas</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Nombre</th><th>Empresa</th><th>Correo</th><th>Plan</th><th>Estado</th><th>Fecha creación</th><th>Acciones</th></tr></thead>
+        <tbody id="tabla-cuentas"><tr><td colspan="7" style="text-align:center;padding:20px;color:#8a94a6">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://dinxjpqdrdspeuqyfqzd.supabase.co';
+const SUPABASE_KEY='sb_publishable_QJuJABkAkGgtmAdm-tF2sg_f4mIsuBg';
+const ADMIN_PASS='MBLAdmin2026$';
+const WA_NUM='56942162213';
+const supa=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+function doAdminLogin(){
+  const pass=document.getElementById('admin-pass').value;
+  if(pass===ADMIN_PASS){
+    document.getElementById('login-section').style.display='none';
+    document.getElementById('panel-section').style.display='flex';
+    cargarCuentas();
+  } else {
+    document.getElementById('admin-error').classList.add('show');
+  }
+}
+
+function salirAdmin(){
+  document.getElementById('login-section').style.display='flex';
+  document.getElementById('panel-section').style.display='none';
+  document.getElementById('admin-pass').value='';
+}
+
+function fmtFecha(iso){if(!iso)return'—';const d=new Date(iso);return d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'});}
+function badgeEstado(e){const m={pendiente:'badge-pendiente',activo:'badge-activo',suspendido:'badge-suspendido'};return`<span class="badge ${m[e]||''}">${e}</span>`;}
+
+async function cargarCuentas(){
+  const {data,error}=await supa.from('cuentas').select('*').order('fecha_solicitud',{ascending:false});
+  if(error){console.error(error);return;}
+  const total=data.length;
+  const activas=data.filter(c=>c.estado==='activo').length;
+  const pendientes=data.filter(c=>c.estado==='pendiente').length;
+  const suspendidas=data.filter(c=>c.estado==='suspendido').length;
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-activas').textContent=activas;
+  document.getElementById('stat-pendientes').textContent=pendientes;
+  document.getElementById('stat-suspendidas').textContent=suspendidas;
+
+  const pend=data.filter(c=>c.estado==='pendiente');
+  document.getElementById('tabla-pendientes').innerHTML=pend.length?pend.map(c=>`<tr>
+    <td><strong>${c.nombre||'—'}</strong></td>
+    <td>${c.empresa||'—'}</td>
+    <td>${c.email||'—'}</td>
+    <td>${c.plan==='semestral'?'Semestral':'Mensual'}</td>
+    <td>${fmtFecha(c.fecha_solicitud)}</td>
+    <td class="actions-cell">
+      <button class="btn btn-sm btn-success" onclick="aprobarCuenta('${c.id}','${c.email||''}','${c.nombre||''}')">✓ Aprobar</button>
+      <button class="btn btn-sm btn-danger" onclick="eliminarCuenta('${c.id}')">✕ Rechazar</button>
+      <a href="https://wa.me/${WA_NUM}?text=${encodeURIComponent('Hola '+( c.nombre||'')+', tu cuenta en MBL Proyecta ha sido aprobada.')}" target="_blank" class="btn btn-sm" style="background:#25d366;color:#fff;text-decoration:none">WhatsApp</a>
+    </td>
+  </tr>`).join(''):`<tr><td colspan="6" style="text-align:center;padding:20px;color:#8a94a6">Sin solicitudes pendientes</td></tr>`;
+
+  document.getElementById('tabla-cuentas').innerHTML=data.length?data.map(c=>`<tr>
+    <td><strong>${c.nombre||'—'}</strong></td>
+    <td>${c.empresa||'—'}</td>
+    <td>${c.email||'—'}</td>
+    <td>${c.plan==='semestral'?'Semestral $180K':'Mensual $35K'}</td>
+    <td>${badgeEstado(c.estado)}</td>
+    <td>${fmtFecha(c.fecha_solicitud)}</td>
+    <td class="actions-cell">
+      ${c.estado!=='activo'?`<button class="btn btn-sm btn-success" onclick="cambiarEstado('${c.id}','activo')">Activar</button>`:''}
+      ${c.estado!=='suspendido'?`<button class="btn btn-sm btn-warning" onclick="cambiarEstado('${c.id}','suspendido')">Suspender</button>`:''}
+      <button class="btn btn-sm btn-danger" onclick="eliminarCuenta('${c.id}')">Eliminar</button>
+    </td>
+  </tr>`).join(''):`<tr><td colspan="7" style="text-align:center;padding:20px;color:#8a94a6">Sin cuentas registradas</td></tr>`;
+}
+
+async function cambiarEstado(id,estado){
+  const {error}=await supa.from('cuentas').update({estado}).eq('id',id);
+  if(error)alert('Error: '+error.message);
+  else cargarCuentas();
+}
+
+async function eliminarCuenta(id){
+  if(!confirm('¿Eliminar esta cuenta? Esta acción no se puede deshacer.'))return;
+  await supa.from('cuentas').delete().eq('id',id);
+  cargarCuentas();
+}
+
+async function aprobarCuenta(id,email,nombre){
+  const pass=prompt(`Ingresa la contraseña temporal para ${nombre||email}:`);
+  if(!pass)return;
+  await supa.from('cuentas').update({estado:'activo',fecha_aprobacion:new Date().toISOString()}).eq('id',id);
+  alert(`✅ Cuenta aprobada. Envía la contraseña "${pass}" al usuario por WhatsApp o correo.`);
+  cargarCuentas();
+}
+
+async function crearCuenta(){
+  const nombre=document.getElementById('new-nombre').value.trim();
+  const empresa=document.getElementById('new-empresa').value.trim();
+  const email=document.getElementById('new-email').value.trim();
+  const pass=document.getElementById('new-pass').value.trim();
+  const plan=document.getElementById('new-plan').value;
+  if(!nombre||!email||!pass){alert('Completa nombre, correo y contraseña.');return;}
+  const msg=document.getElementById('create-msg');
+  msg.textContent='Creando cuenta...';
+  const {data,error}=await supa.auth.admin?
+    supa.auth.admin.createUser({email,password:pass,email_confirm:true}):
+    {data:null,error:{message:'Sin permisos de admin API'}};
+  if(error){
+    // Intentar con signUp normal
+    const {data:d2,error:e2}=await supa.auth.signUp({email,password:pass,options:{data:{nombre,empresa}}});
+    if(e2){msg.textContent='Error: '+e2.message;msg.style.color='#b91c1c';return;}
+    if(d2?.user){
+      await supa.from('cuentas').insert({id:d2.user.id,nombre,empresa,email,plan,estado:'activo',fecha_solicitud:new Date().toISOString(),fecha_aprobacion:new Date().toISOString()});
+    }
+  } else if(data?.user){
+    await supa.from('cuentas').insert({id:data.user.id,nombre,empresa,email,plan,estado:'activo',fecha_solicitud:new Date().toISOString(),fecha_aprobacion:new Date().toISOString()});
+  }
+  msg.textContent='✅ Cuenta creada correctamente';msg.style.color='#166534';
+  document.getElementById('new-nombre').value='';document.getElementById('new-empresa').value='';
+  document.getElementById('new-email').value='';document.getElementById('new-pass').value='';
+  setTimeout(()=>msg.textContent='',3000);
+  cargarCuentas();
+}
+</script>
+</body>
+</html>
