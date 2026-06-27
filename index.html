@@ -377,13 +377,20 @@ function seleccionarPlan(plan){
   document.getElementById('plan-semestral-label').style.background=plan==='semestral'?'#e8f0fb':'#fff';
 }
 
-function doRegistro(){
+async function doRegistro(){
   const nombre=document.getElementById('reg-nombre').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const empresa=document.getElementById('reg-empresa').value.trim();
   if(!nombre||!email||!empresa){alert('Por favor completa todos los campos.');return;}
+  const btn=document.querySelector('#registro-form .btn-modal');
+  btn.textContent='Enviando...';btn.disabled=true;
+  await supa.from('cuentas').insert({
+    id:crypto.randomUUID(),nombre,empresa,email,
+    plan:planSeleccionado,estado:'pendiente',
+    fecha_solicitud:new Date().toISOString()
+  });
+  btn.textContent='Enviar solicitud';btn.disabled=false;
   const planTexto=planSeleccionado==='mensual'?'Plan Mensual $35.000/mes':'Plan Semestral $180.000/6 meses';
-  // Actualizar mensaje de WhatsApp con datos del cliente
   const waMsg=encodeURIComponent(`Hola, me llamo ${nombre} de la empresa ${empresa} (${email}). Acabo de solicitar una cuenta en MBL Proyecta con el ${planTexto}. Quiero completar mi registro.`);
   document.querySelector('#registro-ok a').href=`https://wa.me/56942162213?text=${waMsg}`;
   document.getElementById('registro-form').style.display='none';
