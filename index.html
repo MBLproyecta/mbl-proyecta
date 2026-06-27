@@ -299,9 +299,10 @@
     <p class="modal-sub">Completa el formulario y elige tu plan.</p>
     <div class="success-msg" id="registro-ok" style="display:none;background:#f0fdf4;border:1px solid #86efac;color:#166534;border-radius:12px;padding:20px;text-align:center">
       <div style="font-size:28px;margin-bottom:8px">🎉</div>
-      <div style="font-weight:700;font-size:16px;margin-bottom:6px">¡Solicitud enviada!</div>
-      <div style="font-size:14px;color:#166534;margin-bottom:16px">Para completar tu registro y activar tu cuenta, habla con un ejecutivo:</div>
-      <a href="https://wa.me/56942162213?text=Hola,%20acabo%20de%20solicitar%20una%20cuenta%20en%20MBL%20Proyecta%20y%20quiero%20completar%20mi%20registro." target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#25d366;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700;font-size:15px">
+      <div style="font-weight:700;font-size:16px;margin-bottom:6px">¡Cuenta creada!</div>
+      <div style="font-size:14px;color:#166534;margin-bottom:8px">Te enviamos un email de confirmación. Revisa tu bandeja de entrada y haz click en el link para activar tu cuenta.</div>
+      <div style="font-size:13px;color:#166534;margin-bottom:16px">Una vez confirmado, habla con un ejecutivo para activar tu acceso:</div>
+      <a id="wa-link" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#25d366;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700;font-size:15px">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         Hablar por WhatsApp
       </a>
@@ -316,9 +317,22 @@
         <input type="email" id="reg-email" placeholder="tu@empresa.cl">
       </div>
       <div class="field-group">
+        <label>Teléfono</label>
+        <input type="tel" id="reg-telefono" placeholder="+56 9 1234 5678">
+      </div>
+      <div class="field-group">
         <label>Empresa</label>
         <input type="text" id="reg-empresa" placeholder="Nombre de tu empresa">
       </div>
+      <div class="field-group">
+        <label>Contraseña</label>
+        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="field-group">
+        <label>Confirmar contraseña</label>
+        <input type="password" id="reg-pass2" placeholder="Repite tu contraseña">
+      </div>
+      <div id="reg-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px"></div>
       <div class="field-group">
         <label>Elige tu plan</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
@@ -335,7 +349,7 @@
           </label>
         </div>
       </div>
-      <button class="btn-modal" onclick="doRegistro()">Enviar solicitud</button>
+      <button class="btn-modal" onclick="doRegistro()">Crear cuenta</button>
     </div>
     <div class="modal-switch">¿Ya tienes cuenta? <a onclick="cambiarModal('registro','login')">Inicia sesión</a></div>
   </div>
@@ -380,19 +394,46 @@ function seleccionarPlan(plan){
 async function doRegistro(){
   const nombre=document.getElementById('reg-nombre').value.trim();
   const email=document.getElementById('reg-email').value.trim();
+  const telefono=document.getElementById('reg-telefono').value.trim();
   const empresa=document.getElementById('reg-empresa').value.trim();
-  if(!nombre||!email||!empresa){alert('Por favor completa todos los campos.');return;}
+  const pass=document.getElementById('reg-pass').value;
+  const pass2=document.getElementById('reg-pass2').value;
+  const errDiv=document.getElementById('reg-error');
+  errDiv.style.display='none';
+
+  if(!nombre||!email||!empresa||!pass){errDiv.textContent='Por favor completa todos los campos obligatorios.';errDiv.style.display='block';return;}
+  if(pass.length<6){errDiv.textContent='La contraseña debe tener al menos 6 caracteres.';errDiv.style.display='block';return;}
+  if(pass!==pass2){errDiv.textContent='Las contraseñas no coinciden. Por favor verifica.';errDiv.style.display='block';return;}
+
   const btn=document.querySelector('#registro-form .btn-modal');
-  btn.textContent='Enviando...';btn.disabled=true;
-  await supa.from('cuentas').insert({
-    id:crypto.randomUUID(),nombre,empresa,email,
-    plan:planSeleccionado,estado:'pendiente',
-    fecha_solicitud:new Date().toISOString()
+  btn.textContent='Creando cuenta...';btn.disabled=true;
+
+  // Registrar en Supabase Auth
+  const {data,error}=await supa.auth.signUp({
+    email, password:pass,
+    options:{data:{nombre,empresa,telefono}}
   });
-  btn.textContent='Enviar solicitud';btn.disabled=false;
+
+  if(error){
+    errDiv.textContent='Error: '+error.message;
+    errDiv.style.display='block';
+    btn.textContent='Crear cuenta';btn.disabled=false;
+    return;
+  }
+
+  // Guardar en tabla cuentas
+  if(data?.user){
+    await supa.from('cuentas').insert({
+      id:data.user.id,nombre,empresa,email,
+      telefono,plan:planSeleccionado,estado:'pendiente',
+      fecha_solicitud:new Date().toISOString()
+    });
+  }
+
+  btn.textContent='Crear cuenta';btn.disabled=false;
   const planTexto=planSeleccionado==='mensual'?'Plan Mensual $35.000/mes':'Plan Semestral $180.000/6 meses';
-  const waMsg=encodeURIComponent(`Hola, me llamo ${nombre} de la empresa ${empresa} (${email}). Acabo de solicitar una cuenta en MBL Proyecta con el ${planTexto}. Quiero completar mi registro.`);
-  document.querySelector('#registro-ok a').href=`https://wa.me/56942162213?text=${waMsg}`;
+  const waMsg=encodeURIComponent(`Hola, me llamo ${nombre} de ${empresa} (${email}${telefono?', '+telefono:''}). Me acabo de registrar en MBL Proyecta con el ${planTexto} y quiero activar mi cuenta.`);
+  document.getElementById('wa-link').href=`https://wa.me/56942162213?text=${waMsg}`;
   document.getElementById('registro-form').style.display='none';
   document.getElementById('registro-ok').style.display='block';
 }

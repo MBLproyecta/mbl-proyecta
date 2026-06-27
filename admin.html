@@ -107,7 +107,7 @@ tr:last-child td{border-bottom:none;}
     <p class="section-title">Solicitudes pendientes</p>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Nombre</th><th>Empresa</th><th>Correo</th><th>Plan</th><th>Fecha solicitud</th><th>Acciones</th></tr></thead>
+        <thead><tr><th>Nombre</th><th>Empresa</th><th>Correo</th><th>Teléfono</th><th>Plan</th><th>Fecha solicitud</th><th>Acciones</th></tr></thead>
         <tbody id="tabla-pendientes"><tr><td colspan="6" style="text-align:center;padding:20px;color:#8a94a6">Cargando...</td></tr></tbody>
       </table>
     </div>
@@ -170,6 +170,7 @@ async function cargarCuentas(){
     <td><strong>${c.nombre||'—'}</strong></td>
     <td>${c.empresa||'—'}</td>
     <td>${c.email||'—'}</td>
+    <td>${c.telefono||'—'}</td>
     <td>${c.plan==='semestral'?'Semestral':'Mensual'}</td>
     <td>${fmtFecha(c.fecha_solicitud)}</td>
     <td class="actions-cell">
