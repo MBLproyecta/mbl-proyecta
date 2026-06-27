@@ -58,8 +58,9 @@ tr:last-child td{border-bottom:none;}
   <div class="card">
     <h2>Panel Administrador</h2>
     <p>Acceso exclusivo para administradores de MBL Proyecta.</p>
-    <div class="error" id="admin-error">Contraseña incorrecta.</div>
-    <div class="field"><label>Contraseña de administrador</label><input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+    <div class="error" id="admin-error">Correo o contraseña incorrectos.</div>
+    <div class="field"><label>Correo electrónico</label><input type="email" id="admin-email" placeholder="tu@correo.cl"></div>
+    <div class="field"><label>Contraseña</label><input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
     <button class="btn btn-primary" onclick="doAdminLogin()">Entrar</button>
   </div>
 </div>
@@ -126,13 +127,15 @@ tr:last-child td{border-bottom:none;}
 <script>
 const SUPABASE_URL='https://dinxjpqdrdspeuqyfqzd.supabase.co';
 const SUPABASE_KEY='sb_publishable_QJuJABkAkGgtmAdm-tF2sg_f4mIsuBg';
+const ADMIN_EMAIL='leoandres41@gmail.com';
 const ADMIN_PASS='MBLAdmin2026$';
 const WA_NUM='56942162213';
 const supa=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 function doAdminLogin(){
+  const email=document.getElementById('admin-email').value.trim().toLowerCase();
   const pass=document.getElementById('admin-pass').value;
-  if(pass===ADMIN_PASS){
+  if(email===ADMIN_EMAIL&&pass===ADMIN_PASS){
     document.getElementById('login-section').style.display='none';
     document.getElementById('panel-section').style.display='flex';
     cargarCuentas();
